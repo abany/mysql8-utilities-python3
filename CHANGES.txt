@@ -1,3 +1,9 @@
+Release-1.6.6
+-------------
+- Added '--include-table' option
+- BugFix: The mysql.connector package adds single quotes to a string then transforms a string to bytes. NULL should be None in python, but it is "NULL", so it is transformed. This update prevents it.
+- Code converted to Python 3
+
 Release-1.6.5
 -------------
 - BUG#25030151 : mysqlfailover (v:1.6) was stopped silently when using a '--exec-before' script
