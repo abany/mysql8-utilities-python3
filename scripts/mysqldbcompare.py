@@ -173,6 +173,15 @@ if __name__ == '__main__':
              "primary key (each of his columns must not allow null values)."
     )
 
+    # match only these tables
+    parser.add_option(
+        "--include-table",
+        action="append",
+        default=[],
+        dest="include_tables",
+        help="list of tables to be matched."
+    )
+
     # Add verbosity and quiet (silent) mode
     add_verbosity(parser, True)
 
@@ -366,7 +375,8 @@ if __name__ == '__main__':
         # Compare all databases.
         try:
             res = compare_all_databases(server1_values, server2_values,
-                                        exclude_list, options)
+                                        exclude_list, options,
+                                        include_tables=opt.include_tables)
         except UtilError:
             _, e, _ = sys.exc_info()
             print("ERROR: %s" % e.errmsg)
@@ -414,7 +424,8 @@ if __name__ == '__main__':
 
             try:
                 res = database_compare(server1_values, server2_values,
-                                       db1, db2, options)
+                                       db1, db2, options,
+                                       include_tables=opt.include_tables)
                 if not opt.quiet:
                     print()
             except UtilError:
