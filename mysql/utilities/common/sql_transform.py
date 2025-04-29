@@ -93,9 +93,12 @@ def to_sql(obj):
     #if obj is not None and not isinstance(obj,str):
     #    obj = str(obj,'utf-8') 
     to_sql.__dict__.setdefault('converter', MySQLConverter())
-    obj = to_sql.converter.escape(tobytearray(obj))  # pylint: disable=E1101
-    obj = to_sql.converter.quote(tobytearray(obj))
-    return tostr(obj)  
+    if obj == "NULL":
+        return bytearray(b"NULL")
+    else:
+        obj = to_sql.converter.escape(tobytearray(obj))  # pylint: disable=E1101
+        obj = to_sql.converter.quote(tobytearray(obj))
+    return tostr(obj)
 
 
 def quote_with_backticks(identifier, sql_mode=''):
