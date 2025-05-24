@@ -94,7 +94,7 @@ def to_sql(obj):
     #    obj = str(obj,'utf-8') 
     to_sql.__dict__.setdefault('converter', MySQLConverter())
     if obj == "NULL":
-        return bytearray(b"NULL")
+        return "NULL"
     else:
         obj = to_sql.converter.escape(tobytearray(obj))  # pylint: disable=E1101
         obj = to_sql.converter.quote(tobytearray(obj))
