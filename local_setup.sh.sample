@@ -1,0 +1,73 @@
+#!/bin/bash
+# local_setup.sh.sample
+# 
+# Copy this file to local_setup.sh and modify with your actual credentials
+# local_setup.sh is gitignored and won't be committed to version control
+#
+# Usage: 
+#   cp local_setup.sh.sample local_setup.sh
+#   # Edit local_setup.sh with your real credentials
+#   chmod +x local_setup.sh
+#   ./local_setup.sh
+
+echo "🚀 Setting up MySQL Utilities environment..."
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Set environment variables for database connections
+# REPLACE THESE WITH YOUR ACTUAL CREDENTIALS
+export DB_USER1="YOUR_USERNAME_HERE"
+export DB_PASS1="YOUR_PASSWORD_HERE"
+export DB_HOST1="your-dev-server.example.com"
+export DB_PORT1="3306"
+
+export DB_USER2="YOUR_USERNAME_HERE"  
+export DB_PASS2="YOUR_PASSWORD_HERE"
+export DB_HOST2="your-prod-server.example.com"
+export DB_PORT2="3306"
+
+# Database names
+export DB_NAME1="YOUR_DATABASE_NAME"
+export DB_NAME2="YOUR_DATABASE_NAME"
+
+echo "✅ Environment activated"
+echo "✅ Database credentials loaded"
+echo ""
+
+# Verify utilities are available
+echo "📋 Available utilities:"
+which mysqldbcompare >/dev/null 2>&1 && echo "  ✓ mysqldbcompare" || echo "  ✗ mysqldbcompare not found"
+which mysqldbcopy >/dev/null 2>&1 && echo "  ✓ mysqldbcopy" || echo "  ✗ mysqldbcopy not found"
+which mysqlserverinfo >/dev/null 2>&1 && echo "  ✓ mysqlserverinfo" || echo "  ✗ mysqlserverinfo not found"
+
+echo ""
+echo "🔧 Ready to use! Example commands:"
+echo ""
+
+# Database comparison example
+echo "📊 Compare databases:"
+echo "mysqldbcompare \\"
+echo "  --server1='\$DB_USER1:\$DB_PASS1@\$DB_HOST1:\$DB_PORT1' \\"
+echo "  --server2='\$DB_USER2:\$DB_PASS2@\$DB_HOST2:\$DB_PORT2' \\"
+echo "  --run-all-tests \\"
+echo "  --skip-row-count \\"
+echo "  --skip-data-check \\"
+echo "  \$DB_NAME1:\$DB_NAME2"
+echo ""
+
+# Server info example
+echo "ℹ️  Get server information:"
+echo "mysqlserverinfo --server='\$DB_USER1:\$DB_PASS1@\$DB_HOST1:\$DB_PORT1'"
+echo ""
+
+# Database copy example
+echo "📋 Copy database:"
+echo "mysqldbcopy \\"
+echo "  --source='\$DB_USER1:\$DB_PASS1@\$DB_HOST1:\$DB_PORT1' \\"
+echo "  --destination='\$DB_USER2:\$DB_PASS2@\$DB_HOST2:\$DB_PORT2' \\"
+echo "  \$DB_NAME1:\$DB_NAME2"
+echo ""
+
+echo "⚠️  Security reminder: Never commit local_setup.sh to version control!"
+echo "🔒 Your credentials are safe - this file is gitignored."

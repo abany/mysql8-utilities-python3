@@ -60,3 +60,15 @@ coverage.xml
 
 # Result file used by some MUT tests
 mysql-test/result.txt
+
+# Virtual environment
+venv/
+
+# Local configuration files with credentials
+local_setup.sh
+local_config.sh
+*.local.sh
+
+# MySQL configuration files
+.my.cnf
+.mylogin.cnf
