@@ -21,7 +21,7 @@ MySQL Utilities provides a set of command-line tools for database administration
 ### Step 1: Clone the Repository
 ```bash
 git clone <repository-url>
-cd mysql-utilities-python3
+cd mysql8-utilities-python3
 ```
 
 ### Step 2: Create Virtual Environment
