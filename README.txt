@@ -690,3 +690,28 @@ the HTML Library software distribution is included in the file
 docs/license.html_lib.
 
 *****************************************************************
+
+Developer / Editable install notes
+----------------------------------
+
+If `pip install -e .` fails with warnings like "not a valid package name"
+containing paths such as `.venv.lib.python3.9.site-packages...` or an error
+about `package directory 'venv/lib/python3/9/site-packages/...`:
+
+1. Preferred: create the virtualenv outside the repository:
+   $ python3 -m venv ~/.venv-mysqlutils
+   $ source ~/.venv-mysqlutils/bin/activate
+   $ python3 -m pip install -e .
+
+2. If you must keep a venv in the project, remove or move it before running
+   the editable install to avoid accidental package discovery of site-packages.
+
+3. Advanced: edit the [`find_packages`](info.py) function in [info.py](info.py) to
+   filter out any discovered packages whose root path contains `site-packages`,
+   `.venv` or `venv`. This prevents invalid dotted package names from being
+   returned to setuptools and fixes the metadata preparation step.
+
+You can also try:
+   python3 -m pip install -e . --no-build-isolation
+but this may still fail if package discovery yields invalid package names.
+For more details see [setup.py](setup.py) and [pyproject.toml](pyproject.toml).

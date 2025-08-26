@@ -28,9 +28,9 @@ KNOWN_MYSQL_RPM_PKGS = [
 
 # Regex pattern to extract package name from dpkg -S output (module-level constant)
 DPKG_PACKAGE_NAME_REGEX = r'^([^\s:]+):'
-    'mysql-community-client',
-    'mysql-client',
-]
+
+# Regex pattern to extract base package name from RPM package string (module-level constant)
+RPM_BASE_PKG_REGEX = r'^([^-]+(?:-[^-]+)*)'
 
 def get_my_print_defaults_path():
     """Get the my_print_defaults executable path (lazy evaluation with caching)"""
@@ -131,7 +131,10 @@ def detect_mysql_linux(path):
                     return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
+
+    # Try dpkg if rpm did not succeed
+    try:
+        dpkg_cmd = ['dpkg', '-S', path]
         dpkg_result = subprocess.check_output(dpkg_cmd, stderr=subprocess.DEVNULL, text=True).strip()
         if dpkg_result:
             # Extract package name before the first colon using regex
@@ -140,9 +143,6 @@ def detect_mysql_linux(path):
             if match:
                 pkg_info = match.group(1)
                 # Check against known MySQL packages and exclude MariaDB
-                if (any(pkg_info.lower() == name.lower() for name in KNOWN_MYSQL_RPM_PKGS) and 
-                    'mariadb' not in pkg_info.lower()):
-                    return True
                 if (any(pkg_info.lower() == name.lower() for name in KNOWN_MYSQL_RPM_PKGS) and 
                     'mariadb' not in pkg_info.lower()):
                     return True

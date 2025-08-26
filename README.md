@@ -218,6 +218,36 @@ mysqldbcompare --server1=$DB_USER:$DB_PASS@host1:3306 --server2=$DB_USER:$DB_PAS
 mysqldbcompare --server1=host1:3306 --server2=host2:3306 db1:db2
 ```
 
+## Developer / Editable install notes
+
+If `python3 -m pip install -e .` fails with many warnings like
+"'.venv.lib.python3.9.site-packages.*' not a valid package name" or an error about
+`package directory 'venv/lib/python3/9/site-packages/past' does not exist`, this
+means the project's package discovery is picking up your virtualenv's site-packages
+directory (for example when the virtualenv is created inside the repository).
+
+Recommended fixes:
+- Create the virtualenv outside the repository (recommended):
+  ```sh
+  python3 -m venv ~/.venv-mysqlutils
+  source ~/.venv-mysqlutils/bin/activate
+  python3 -m pip install -e .
+  ```
+- Or move/delete the `.venv`/`venv` folder from the project root before running
+  `pip install -e .`.
+
+If you need to keep the venv inside the project, patch the package discovery to
+ignore `site-packages` paths by editing the [`find_packages`](info.py) function
+in [info.py](info.py). See [setup.py](setup.py) and [pyproject.toml](pyproject.toml)
+for how the package metadata is built.
+
+Optional: temporary try (may still fail depending on project state):
+```sh
+python3 -m pip install -e . --no-build-isolation
+```
+Note: the robust solution is to avoid having the venv inside the project or to
+filter out site-packages in [`find_packages`](info.py).
+
 ## License
 
 This project is licensed under the GNU General Public License v2.0 - see the LICENSE.txt file for details.

@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import glob
 import os
+from fnmatch import fnmatch
 
 import mysql.utilities
 
@@ -39,7 +40,6 @@ def find_packages(*args, **kwrds):
     Root base path can be attached to each package by using 'inc_base'
     keyword.
     """
-    from fnmatch import fnmatch
     excludes = kwrds.get('exclude', [])
     inc_base = kwrds.get('inc_base', False)
     pkgs = {}
@@ -54,6 +54,23 @@ def find_packages(*args, **kwrds):
                     pkg = base_path.replace(os.sep, '.')
                 pkgs[pkg] = root
 
+    # Filter out packages discovered inside virtualenv or site-packages
+    bad_indicators = ('site-packages', os.path.join('.venv', ''),
+                      os.path.join('venv', ''), os.path.join('lib', 'python'))
+    filtered_pkgs = {}
+    for pkg_name, pkg_root in pkgs.items():
+        try:
+            norm_root = os.path.normpath(pkg_root).lower()
+            if any(ind in norm_root for ind in bad_indicators):
+                # skip packages coming from virtualenv/site-packages
+                continue
+        except Exception:
+            # keep package if anything odd happens
+            filtered_pkgs[pkg_name] = pkg_root
+        else:
+            filtered_pkgs[pkg_name] = pkg_root
+
+    pkgs = filtered_pkgs
     result = list(pkgs.keys())
     for excl in excludes:
         # We exclude packages that *begin* with an exclude pattern.
@@ -134,46 +151,65 @@ def add_optional_resources(*args, **kwrds):
         INSTALL['data_files'] = data_files_found
 
 
+def find_packages(root='.'):
+    """
+    Find packages only inside the project root and skip virtualenvs / site-packages.
+    Returns a sorted list of dotted package names.
+    """
+    root = os.path.abspath(root)
+    exclude_top_dirs = {'.git', '.venv', 'venv', 'env', 'build', 'dist', '__pycache__'}
+    packages = []
+
+    for dirpath, dirnames, filenames in os.walk(root):
+        # compute relative path from project root
+        rel = os.path.relpath(dirpath, root)
+        # normalize '.' to empty
+        if rel == '.':
+            rel = ''
+        # skip any top-level excluded directory (and prune it)
+        parts = rel.split(os.sep) if rel else []
+        if parts and parts[0] in exclude_top_dirs:
+            dirnames[:] = []  # don't descend
+            continue
+
+        # skip directories that look like site-packages / venv paths
+        norm = os.path.normpath(dirpath).lower()
+        if 'site-packages' in norm or os.path.join('.venv', '') in norm or os.path.join('venv', '') in norm:
+            dirnames[:] = []
+            continue
+
+        if '__init__.py' in filenames:
+            if rel == '':
+                # ignore top-level project root as a package unless it actually is intended
+                # (this repository uses package directories under mysql/)
+                pass
+            else:
+                pkg = rel.replace(os.sep, '.')
+                packages.append(pkg)
+
+    packages.sort()
+    return packages
+
+
+def find_scripts(scripts_dir='scripts'):
+    if not os.path.isdir(scripts_dir):
+        return []
+    return [os.path.join(scripts_dir, f) for f in os.listdir(scripts_dir)
+            if os.path.isfile(os.path.join(scripts_dir, f)) and f.endswith('.py')]
+
+
 META_INFO = {
-    'name': 'mysql-utilities',
-    'description': 'MySQL Utilities',
-    'maintainer': 'Oracle',
-    'maintainer_email': '',
-    'version': mysql.utilities.VERSION_STRING,
-    'url': 'http://dev.mysql.com',
-    'license': 'GNU GPLv2 (with FOSS License Exception)',
-    'keywords': "mysql db",
-    'classifiers': [
-        'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Environment :: Console',
-        'Environment :: Win32 (MS Windows)',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Database Administrators',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: OS Independent',
-        'Operating System :: POSIX',
-        'Topic :: Utilities',
-    ],
+    'name': 'mysql-utilities-python3',
+    'version': '2',
+    'description': 'MySQL Utilities Python 3 (dev install)',
+    'author': 'Abraham Perez',
+    'url': 'https://github.com/abany/mysql8-utilities-python3.git',
 }
 
 INSTALL = {
-    'packages': [
-        'mysql',
-        'mysql.utilities',
-        'mysql.utilities.command',
-        'mysql.utilities.common',
-    ],
-    'scripts': glob.glob('scripts/*.py'),
-    'requires': [
-        'distutils',
-    ],
-    'provides': [
-        'mysql.utilities',
-    ],
+    'packages': find_packages(),
+    'scripts': find_scripts(),
+    'include_package_data': True,
 }
 # This adds any optional resource
 add_optional_resources('mysql', exclude=["tests"])

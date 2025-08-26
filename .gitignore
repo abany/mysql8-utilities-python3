@@ -62,6 +62,7 @@ coverage.xml
 mysql-test/result.txt
 
 # Virtual environment
+.venv/
 venv/
 
 # Local configuration files with credentials

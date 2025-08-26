@@ -35,8 +35,30 @@ from distutils.command.install_data import install_data as _install_data
 from distutils.util import change_root
 from distutils.file_util import DistutilsFileError
 from distutils import log, dir_util
+import importlib.util
 
-from info import META_INFO, INSTALL
+# from info import META_INFO, INSTALL
+def _load_info_module(name):
+    here = os.path.abspath(os.path.dirname(__file__))
+    path = os.path.join(here, name + ".py")
+    if not os.path.exists(path):
+        raise ImportError(name)
+    spec = importlib.util.spec_from_file_location(name, path)
+    if not spec or not spec.loader:
+        raise ImportError(name)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+try:
+    mod = _load_info_module("info_build")
+except (ImportError, FileNotFoundError) as e:
+    try:
+        mod = _load_info_module("info")
+    except (ImportError, FileNotFoundError) as e2:
+        raise e2
+META_INFO = mod.META_INFO
+INSTALL = mod.INSTALL
 
 # Check required Python version
 #if sys.version_info[0:2] not in [(2, 6), (2, 7)]:

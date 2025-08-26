@@ -82,3 +82,19 @@ Version-specific handling is done via `server.has_mysqlproc()` and `server.get_s
 - Most utilities support multiple output formats via `--format` option
 - Error handling uses custom exception classes in `mysql.utilities.exception`
 - Logging and verbosity controlled via common options framework
+
+## Note for local editable installs
+
+Observed issue: editable installs (`pip install -e .`) can fail on macOS / local
+development when a virtualenv is created inside the repository (e.g. `.venv`).
+Package discovery may pick up `site-packages` from the venv, producing invalid
+package names such as `.venv.lib.python3.9.site-packages.*`.
+
+Quick recommendations:
+- Keep your virtualenv outside the project folder.
+- If necessary, edit the [`find_packages`](info.py) function in [info.py](info.py)
+  to ignore `site-packages` and typical venv directories.
+- See [README.md](README.md) and [README.txt](README.txt) for the same instructions.
+
+This note documents the workaround used during local development to avoid the
+editable-install metadata-generation error.
